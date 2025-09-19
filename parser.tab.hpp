@@ -35,8 +35,8 @@
    especially those whose name start with YY_ or yy_.  They are
    private implementation details that can be changed or removed.  */
 
-#ifndef YY_YY_PARSER_TAB_H_INCLUDED
-# define YY_YY_PARSER_TAB_H_INCLUDED
+#ifndef YY_YY_PARSER_TAB_HPP_INCLUDED
+# define YY_YY_PARSER_TAB_HPP_INCLUDED
 /* Debug traces.  */
 #ifndef YYDEBUG
 # define YYDEBUG 0
@@ -54,24 +54,10 @@ extern int yydebug;
     YYEOF = 0,                     /* "end of file"  */
     YYerror = 256,                 /* error  */
     YYUNDEF = 257,                 /* "invalid token"  */
-    MODEL = 258,                   /* MODEL  */
-    TENSOR = 259,                  /* TENSOR  */
-    PRINT = 260,                   /* PRINT  */
-    MATMUL = 261,                  /* MATMUL  */
-    CONV2D = 262,                  /* CONV2D  */
-    RELU = 263,                    /* RELU  */
-    SOFTMAX = 264,                 /* SOFTMAX  */
-    LBRACE = 265,                  /* LBRACE  */
-    RBRACE = 266,                  /* RBRACE  */
-    LBRACKET = 267,                /* LBRACKET  */
-    RBRACKET = 268,                /* RBRACKET  */
-    LPAREN = 269,                  /* LPAREN  */
-    RPAREN = 270,                  /* RPAREN  */
-    COMMA = 271,                   /* COMMA  */
-    ASSIGN = 272,                  /* ASSIGN  */
-    PLUS = 273,                    /* PLUS  */
-    ID = 274,                      /* ID  */
-    NUM = 275                      /* NUM  */
+    INT = 258,                     /* INT  */
+    RETURN = 259,                  /* RETURN  */
+    NUMBER = 260,                  /* NUMBER  */
+    IDENTIFIER = 261               /* IDENTIFIER  */
   };
   typedef enum yytokentype yytoken_kind_t;
 #endif
@@ -80,14 +66,16 @@ extern int yydebug;
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 17 "parser.y"
+#line 10 "parser.y"
 
-    int num;
-    char* str;
     ASTNode* node;
     Program* program;
+    Statement* stmt;
+    Expression* expr;
+    int ival;
+    char* sval;
 
-#line 91 "parser.tab.h"
+#line 79 "parser.tab.hpp"
 
 };
 typedef union YYSTYPE YYSTYPE;
@@ -102,4 +90,4 @@ extern YYSTYPE yylval;
 int yyparse (void);
 
 
-#endif /* !YY_YY_PARSER_TAB_H_INCLUDED  */
+#endif /* !YY_YY_PARSER_TAB_HPP_INCLUDED  */

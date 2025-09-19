@@ -1,0 +1,6 @@
+model {
+  tensor X[784,1]
+  tensor W[128,784]
+  Z = matmul(W, X)
+  print(Z)
+}

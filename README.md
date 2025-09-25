@@ -31,7 +31,14 @@ This project is a toy compiler for a Domain Specific Language (DSL) that describ
     - Inside the block, you can declare tensors, assign operations, or print results.
 - Grammar rules map into semantic actions (currently `cout` debug messages).
 - **Future step:** build an Abstract Syntax Tree (AST).
+### AST Nodes (`ast.hpp`)
+- Placeholder for AST node classes (to be implemented).
+- Will represent constructs like `Program`, `TensorDecl`, `Assign`, `Matmul`, `Relu`, `Softmax`, `Print`, etc.
 
+### Intermediate Representation (IR) (`ir_builder.cpp`)
+- Currently a stub that prints "=== IR DUMP ===".
+- Future step: convert AST to a simple IR for further processing.
+  
 ### Driver (main inside `parser.y`)
 - Calls `yyparse()` to start parsing.
 - On success, prints `=== AST ===` (once the AST is hooked up).
@@ -50,14 +57,14 @@ flex lexer.l
 bison -d parser.y
 
 # Compile everything
-g++ parser.tab.c lex.yy.c -o mycompiler -std=c++17
+ g++ parser.tab.cpp lex.yy.cpp ir_builder.cpp -o mycompiler -std=c++17
 ```
 
 ---
 
 ## ▶️ Running
 
-Create a sample DSL file, e.g., `test.nn`:
+Create a sample DSL file, e.g., `model.nn`:
 
 ```text
 MODEL {
@@ -75,21 +82,8 @@ Run:
 ./mycompiler < test.nn
 ```
 
-**Expected output (current stage, before AST):**
+**Expected output (current stage, after  IR):**
 ```
-Tensor decl: A
-Tensor decl: B
-Matmul(A,B)
-Assign: C
-Relu(C)
-Assign: D
-Print: D
-Parsed program!
-=== AST ===
-```
-g++ -x c++ parser.tab.c lex.yy.c -o mycompiler -std=c++17
-
-./mycompiler < model.nn 
 === AST ===
 Program
   TensorDecl X [784,1]
@@ -97,6 +91,16 @@ Program
   Assign Z =
     Matmul(W, X)
   Print Z
+=== IR DUMP ===
+#1 : TensorDecl name='X' inputs=[] shape=784x1 flops=0
+#2 : TensorDecl name='W' inputs=[] shape=128x784 flops=0
+#3 : MatMul name='Z' inputs=[W,X] shape=128x1 flops=200704
+#4 : Print name='' inputs=[Z] shape=128x1 flops=0
+```
+g++ parser.tab.cpp lex.yy.cpp ir_builder.cpp -o mycompiler -std=c++17
+
+./mycompiler < model.nn 
+
 
 ## ✅ Current Status
 

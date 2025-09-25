@@ -54,10 +54,24 @@ extern int yydebug;
     YYEOF = 0,                     /* "end of file"  */
     YYerror = 256,                 /* error  */
     YYUNDEF = 257,                 /* "invalid token"  */
-    INT = 258,                     /* INT  */
-    RETURN = 259,                  /* RETURN  */
-    NUMBER = 260,                  /* NUMBER  */
-    IDENTIFIER = 261               /* IDENTIFIER  */
+    MODEL = 258,                   /* MODEL  */
+    TENSOR = 259,                  /* TENSOR  */
+    PRINT = 260,                   /* PRINT  */
+    MATMUL = 261,                  /* MATMUL  */
+    CONV2D = 262,                  /* CONV2D  */
+    RELU = 263,                    /* RELU  */
+    SOFTMAX = 264,                 /* SOFTMAX  */
+    LBRACE = 265,                  /* LBRACE  */
+    RBRACE = 266,                  /* RBRACE  */
+    LBRACKET = 267,                /* LBRACKET  */
+    RBRACKET = 268,                /* RBRACKET  */
+    LPAREN = 269,                  /* LPAREN  */
+    RPAREN = 270,                  /* RPAREN  */
+    COMMA = 271,                   /* COMMA  */
+    ASSIGN = 272,                  /* ASSIGN  */
+    PLUS = 273,                    /* PLUS  */
+    ID = 274,                      /* ID  */
+    NUM = 275                      /* NUM  */
   };
   typedef enum yytokentype yytoken_kind_t;
 #endif
@@ -66,16 +80,14 @@ extern int yydebug;
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 10 "parser.y"
+#line 19 "parser.y"
 
+    int num;
+    char* str;
     ASTNode* node;
     Program* program;
-    Statement* stmt;
-    Expression* expr;
-    int ival;
-    char* sval;
 
-#line 79 "parser.tab.hpp"
+#line 91 "parser.tab.hpp"
 
 };
 typedef union YYSTYPE YYSTYPE;

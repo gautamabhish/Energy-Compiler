@@ -1360,15 +1360,25 @@ yyreturnlab:
 #line 72 "parser.y"
 
 
+extern IRGraph buildIRFromAST(Program* prog, SymbolTable &symtab, bool &ok_out);
+extern void dumpIR(const IRGraph &g);
+
 int main() {
     if (yyparse() == 0 && root) {
         cout << "=== AST ===\n";
         root->print();
-    } else {
-        cerr << "Parsing failed or empty program.\n";
+        SymbolTable symtab;
+        bool ok;
+        IRGraph g = buildIRFromAST(root, symtab, ok);
+        dumpIR(g);
+        if (!ok) {
+            cerr << "Semantic errors detected during IR construction\n";
+            return 1;
+        }
     }
     return 0;
 }
+
 
 void yyerror(const char *s) {
     cerr << "Syntax error: " << s << endl;

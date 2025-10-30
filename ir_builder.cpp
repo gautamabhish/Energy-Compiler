@@ -13,7 +13,36 @@ std::string genIRFromExpr(ASTNode* expr, SymbolTable &symtab, IRGraph &graph, in
 
 // helper to create temp name
 static std::string makeTemp(int id){ std::ostringstream ss; ss << "_t" << id; return ss.str(); }
+static CoreType classifyOpByType(IROp op) {
+    switch(op) {
+        case IROp::MatMul:
+        case IROp::Conv2D:
+            return CoreType::HighPerf;
+        case IROp::Relu:
+        case IROp::Softmax:
+        case IROp::Print:
+        case IROp::TensorDecl:
+        default:
+            return CoreType::EnergyEfficient;
+    }
+}
+static const char* coreToStr(CoreType c) {
+    return (c == CoreType::HighPerf) ? "HighPerf" : "EnergyEfficient";
+}
 
+
+// A simple post-pass scheduler that can override assignment based on FLOPs threshold.
+// Call scheduleGraph(graph, threshold) after IR is built if you want threshold-based decisions.
+void scheduleGraph(IRGraph &graph, long long flopThreshold = 100000) {
+    for (auto &n : graph.nodes) {
+        // First prefer op-type heuristic:
+        CoreType base = classifyOpByType(n->op);
+
+        // Then refine by FLOPs: if FLOPs exceed threshold, force HighPerf
+        if (n->flops >= flopThreshold) n->assignedCore = CoreType::HighPerf;
+        else n->assignedCore = base;
+    }
+}
 IRGraph buildIRFromAST(Program* prog, SymbolTable &symtab, bool &ok_out) {
     IRGraph graph;
     int nextId = 1;
@@ -39,6 +68,7 @@ IRGraph buildIRFromAST(Program* prog, SymbolTable &symtab, bool &ok_out) {
             inode->name = td->name;
             inode->shape = s;
             inode->flops = 0;
+            inode->assignedCore = classifyOpByType(inode->op);
             graph.addNode(inode);
         }
         else if (auto as = dynamic_cast<Assign*>(n)) {
@@ -150,6 +180,7 @@ std::string genIRFromExpr(ASTNode* expr, SymbolTable &symtab, IRGraph &graph, in
             long long n = R->dims[1];
             node->flops = 2LL * m * k * n;
         }
+        node->assignedCore = classifyOpByType(node->op);
         graph.addNode(node);
         return node->name;
     }
@@ -169,6 +200,7 @@ std::string genIRFromExpr(ASTNode* expr, SymbolTable &symtab, IRGraph &graph, in
         node->name = makeTemp(node->id);
         node->shape = out;
         node->flops = out.size();
+        node->assignedCore = classifyOpByType(node->op);
         graph.addNode(node);
         return node->name;
     }
@@ -188,6 +220,7 @@ std::string genIRFromExpr(ASTNode* expr, SymbolTable &symtab, IRGraph &graph, in
         node->name = makeTemp(node->id);
         node->shape = out;
         node->flops = (out.size()>0) ? out.size() * 10 : 0; // rough estimate
+        node->assignedCore = classifyOpByType(node->op);
         graph.addNode(node);
         return node->name;
     }
@@ -221,6 +254,18 @@ void dumpIR(const IRGraph &g) {
             if (i+1<n->inputs.size()) std::cout << ",";
         }
         std::cout << "] shape="<< n->shape.toString()
-                  << " flops="<< n->flops << "\n";
+                  << " flops="<< n->flops
+                  << " core=" << coreToStr(n->assignedCore)
+                  << "\n";
     }
+
+    // optional summary
+    long long flopsHP = 0, flopsEE = 0;
+    for (auto &n : g.nodes) {
+        if (n->assignedCore == CoreType::HighPerf) flopsHP += n->flops;
+        else flopsEE += n->flops;
+    }
+    std::cout << "=== Core Summary ===\n";
+    std::cout << "HighPerf total FLOPs: " << flopsHP << "\n";
+    std::cout << "EnergyEfficient total FLOPs: " << flopsEE << "\n";
 }

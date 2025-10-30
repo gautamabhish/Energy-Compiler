@@ -4,6 +4,7 @@
 #include <memory>
 #include <unordered_map>
 #include <cstdint>
+enum class CoreType { HighPerf, EnergyEfficient };
 
 struct Shape {
     std::vector<int> dims;
@@ -34,6 +35,7 @@ struct IRNode {
     std::vector<std::string> inputs;   // input names
     Shape shape;                       // inferred shape if known
     long long flops = 0;               // cost estimate
+    CoreType assignedCore = CoreType::EnergyEfficient;
 };
 
 using IRNodePtr = std::shared_ptr<IRNode>;

@@ -6,6 +6,10 @@
 #include "ast.hpp"
 #include "ir.hpp"
 #include "symbol_table.hpp"
+#include "core_scheduler.hpp"
+#include "hardware_manager.hpp"
+
+
 using namespace std;
 
 /* forward declarations for lexer and error handler */
@@ -76,21 +80,50 @@ expr:
 extern IRGraph buildIRFromAST(Program* prog, SymbolTable &symtab, bool &ok_out);
 extern void dumpIR(const IRGraph &g);
 
-int main() {
+int main(int argc, char* argv[]) {
+    // -- parse as before --
     if (yyparse() == 0 && root) {
-        cout << "=== AST ===\n";
+        std::cout << "=== AST ===\n";
         root->print();
+
         SymbolTable symtab;
         bool ok;
         IRGraph g = buildIRFromAST(root, symtab, ok);
         dumpIR(g);
         if (!ok) {
-            cerr << "Semantic errors detected during IR construction\n";
+            std::cerr << "Semantic errors detected during IR construction\n";
             return 1;
         }
+
+        // detect hardware once (fresh copy used per schedule)
+        auto detectedCores = detectCores();
+
+        // --- Baseline run (normal compiler) ---
+        {
+            // use a fresh copy of cores
+            auto coresForBaseline = detectedCores;
+            auto baselineMapping = scheduleBaseline(g, coresForBaseline);
+            SimulationResult baseline = simulateExecution(g, baselineMapping, coresForBaseline, false);
+
+            // print machine friendly single-line (optional immediate)
+            std::cout << "[RESULT] Baseline TIME_MS=" << baseline.timeMs
+                      << " ENERGY_J=" << baseline.energyJ << "\n";
+        }
+
+        // --- Energy-aware run (your compiler) ---
+        {
+            auto coresForOpt = detectedCores;
+            auto optMapping = scheduleEnergyAware(g, coresForOpt);
+            SimulationResult optRes = simulateExecution(g, optMapping, coresForOpt, true);
+
+            std::cout << "[RESULT] EnergyAware TIME_MS=" << optRes.timeMs
+                      << " ENERGY_J=" << optRes.energyJ << "\n";
+        }
+
     }
     return 0;
 }
+
 
 
 void yyerror(const char *s) {

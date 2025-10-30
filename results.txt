@@ -1,0 +1,47 @@
+./mycompiler  <model.nn
+=== AST ===
+Program
+  TensorDecl X [784,1]
+  TensorDecl W [128,784]
+  Assign Z =
+    Matmul(W, X)
+  Print Z
+=== IR DUMP ===
+#1 : TensorDecl name='X' inputs=[] shape=784x1 flops=0 core=EnergyEfficient
+#2 : TensorDecl name='W' inputs=[] shape=128x784 flops=0 core=EnergyEfficient
+#3 : MatMul name='Z' inputs=[W,X] shape=128x1 flops=200704 core=HighPerf
+#4 : Print name='' inputs=[Z] shape=128x1 flops=0 core=EnergyEfficient
+=== Core Summary ===
+HighPerf total FLOPs: 200704
+EnergyEfficient total FLOPs: 0
+Detected 12 logical cores.
+
+=== Baseline mapping: all nodes -> Core#0 ===
+
+=== Simulated Execution (Baseline) ===
+Exec op#1 (X) on Core#0 [HP @ 3.2GHz] -> 0.1 ms, 0.0025 J
+Exec op#2 (W) on Core#0 [HP @ 3.2GHz] -> 0.1 ms, 0.0025 J
+Exec op#3 (Z) on Core#0 [HP @ 3.2GHz] -> 0.06272 ms, 0.001568 J
+Exec op#4 (op#4) on Core#0 [HP @ 3.2GHz] -> 0.1 ms, 0.0025 J
+
+=== Summary ===
+Total time: 0.36272 ms
+Total energy: 0.009068 J
+[RESULT] Baseline TIME_MS=0.36272 ENERGY_J=0.009068
+
+=== Energy-aware core assignment ===
+Node op#4 -> Core#5
+Node Z -> Core#0
+Node W -> Core#3
+Node X -> Core#1
+
+=== Simulated Execution (Energy-Aware) ===
+Exec op#1 (X) on Core#1 [EE @ 2GHz] -> 0.1 ms, 0.0008 J
+Exec op#2 (W) on Core#3 [EE @ 2GHz] -> 0.1 ms, 0.0008 J
+Exec op#3 (Z) on Core#0 [HP @ 3.2GHz] -> 0.06272 ms, 0.001568 J
+Exec op#4 (op#4) on Core#5 [EE @ 2GHz] -> 0.1 ms, 0.0008 J
+
+=== Summary ===
+Total time: 0.1 ms
+Total energy: 0.003968 J
+[RESULT] EnergyAware TIME_MS=0.1 ENERGY_J=0.003968

@@ -74,6 +74,12 @@
 #include <memory>
 #include <string>
 #include "ast.hpp"
+#include "ir.hpp"
+#include "symbol_table.hpp"
+#include "core_scheduler.hpp"
+#include "hardware_manager.hpp"
+
+
 using namespace std;
 
 /* forward declarations for lexer and error handler */
@@ -82,7 +88,7 @@ void yyerror(const char *s);
 
 Program* root = nullptr;
 
-#line 86 "parser.tab.c"
+#line 92 "parser.tab.c"
 
 # ifndef YY_CAST
 #  ifdef __cplusplus
@@ -523,8 +529,8 @@ static const yytype_int8 yytranslate[] =
 /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_int8 yyrline[] =
 {
-       0,    37,    37,    43,    44,    53,    55,    57,    62,    64,
-      66,    68
+       0,    43,    43,    49,    50,    59,    61,    63,    68,    70,
+      72,    74
 };
 #endif
 
@@ -1100,71 +1106,71 @@ yyreduce:
   switch (yyn)
     {
   case 2: /* program: MODEL LBRACE statements RBRACE  */
-#line 38 "parser.y"
+#line 44 "parser.y"
         { root = (yyvsp[-1].program); }
-#line 1106 "parser.tab.c"
-    break;
-
-  case 3: /* statements: %empty  */
-#line 43 "parser.y"
-        { (yyval.program) = new Program(); }
 #line 1112 "parser.tab.c"
     break;
 
+  case 3: /* statements: %empty  */
+#line 49 "parser.y"
+        { (yyval.program) = new Program(); }
+#line 1118 "parser.tab.c"
+    break;
+
   case 4: /* statements: statements statement  */
-#line 45 "parser.y"
+#line 51 "parser.y"
         {
           Program* prog = (yyvsp[-1].program);
           prog->addStmt(ASTNodePtr((yyvsp[0].node)));
           (yyval.program) = prog;
         }
-#line 1122 "parser.tab.c"
-    break;
-
-  case 5: /* statement: TENSOR ID LBRACKET NUM COMMA NUM RBRACKET  */
-#line 54 "parser.y"
-        { (yyval.node) = new TensorDecl(string((yyvsp[-5].str)), (yyvsp[-3].num), (yyvsp[-1].num)); free((yyvsp[-5].str)); }
 #line 1128 "parser.tab.c"
     break;
 
-  case 6: /* statement: ID ASSIGN expr  */
-#line 56 "parser.y"
-        { (yyval.node) = new Assign(string((yyvsp[-2].str)), ASTNodePtr((yyvsp[0].node))); free((yyvsp[-2].str)); }
+  case 5: /* statement: TENSOR ID LBRACKET NUM COMMA NUM RBRACKET  */
+#line 60 "parser.y"
+        { (yyval.node) = new TensorDecl(string((yyvsp[-5].str)), (yyvsp[-3].num), (yyvsp[-1].num)); free((yyvsp[-5].str)); }
 #line 1134 "parser.tab.c"
     break;
 
-  case 7: /* statement: PRINT LPAREN ID RPAREN  */
-#line 58 "parser.y"
-        { (yyval.node) = new PrintStmt(string((yyvsp[-1].str))); free((yyvsp[-1].str)); }
+  case 6: /* statement: ID ASSIGN expr  */
+#line 62 "parser.y"
+        { (yyval.node) = new Assign(string((yyvsp[-2].str)), ASTNodePtr((yyvsp[0].node))); free((yyvsp[-2].str)); }
 #line 1140 "parser.tab.c"
     break;
 
-  case 8: /* expr: MATMUL LPAREN ID COMMA ID RPAREN  */
-#line 63 "parser.y"
-        { (yyval.node) = new MatmulExpr(string((yyvsp[-3].str)), string((yyvsp[-1].str))); free((yyvsp[-3].str)); free((yyvsp[-1].str)); }
+  case 7: /* statement: PRINT LPAREN ID RPAREN  */
+#line 64 "parser.y"
+        { (yyval.node) = new PrintStmt(string((yyvsp[-1].str))); free((yyvsp[-1].str)); }
 #line 1146 "parser.tab.c"
     break;
 
-  case 9: /* expr: RELU LPAREN ID RPAREN  */
-#line 65 "parser.y"
-        { (yyval.node) = new ReluExpr(string((yyvsp[-1].str))); free((yyvsp[-1].str)); }
+  case 8: /* expr: MATMUL LPAREN ID COMMA ID RPAREN  */
+#line 69 "parser.y"
+        { (yyval.node) = new MatmulExpr(string((yyvsp[-3].str)), string((yyvsp[-1].str))); free((yyvsp[-3].str)); free((yyvsp[-1].str)); }
 #line 1152 "parser.tab.c"
     break;
 
-  case 10: /* expr: SOFTMAX LPAREN ID RPAREN  */
-#line 67 "parser.y"
-        { (yyval.node) = new SoftmaxExpr(string((yyvsp[-1].str))); free((yyvsp[-1].str)); }
+  case 9: /* expr: RELU LPAREN ID RPAREN  */
+#line 71 "parser.y"
+        { (yyval.node) = new ReluExpr(string((yyvsp[-1].str))); free((yyvsp[-1].str)); }
 #line 1158 "parser.tab.c"
     break;
 
-  case 11: /* expr: ID  */
-#line 69 "parser.y"
-        { (yyval.node) = new VarExpr(string((yyvsp[0].str))); free((yyvsp[0].str)); }
+  case 10: /* expr: SOFTMAX LPAREN ID RPAREN  */
+#line 73 "parser.y"
+        { (yyval.node) = new SoftmaxExpr(string((yyvsp[-1].str))); free((yyvsp[-1].str)); }
 #line 1164 "parser.tab.c"
     break;
 
+  case 11: /* expr: ID  */
+#line 75 "parser.y"
+        { (yyval.node) = new VarExpr(string((yyvsp[0].str))); free((yyvsp[0].str)); }
+#line 1170 "parser.tab.c"
+    break;
 
-#line 1168 "parser.tab.c"
+
+#line 1174 "parser.tab.c"
 
       default: break;
     }
@@ -1357,27 +1363,56 @@ yyreturnlab:
   return yyresult;
 }
 
-#line 72 "parser.y"
+#line 78 "parser.y"
 
 
 extern IRGraph buildIRFromAST(Program* prog, SymbolTable &symtab, bool &ok_out);
 extern void dumpIR(const IRGraph &g);
 
-int main() {
+int main(int argc, char* argv[]) {
+    // -- parse as before --
     if (yyparse() == 0 && root) {
-        cout << "=== AST ===\n";
+        std::cout << "=== AST ===\n";
         root->print();
+
         SymbolTable symtab;
         bool ok;
         IRGraph g = buildIRFromAST(root, symtab, ok);
         dumpIR(g);
         if (!ok) {
-            cerr << "Semantic errors detected during IR construction\n";
+            std::cerr << "Semantic errors detected during IR construction\n";
             return 1;
         }
+
+        // detect hardware once (fresh copy used per schedule)
+        auto detectedCores = detectCores();
+
+        // --- Baseline run (normal compiler) ---
+        {
+            // use a fresh copy of cores
+            auto coresForBaseline = detectedCores;
+            auto baselineMapping = scheduleBaseline(g, coresForBaseline);
+            SimulationResult baseline = simulateExecution(g, baselineMapping, coresForBaseline, false);
+
+            // print machine friendly single-line (optional immediate)
+            std::cout << "[RESULT] Baseline TIME_MS=" << baseline.timeMs
+                      << " ENERGY_J=" << baseline.energyJ << "\n";
+        }
+
+        // --- Energy-aware run (your compiler) ---
+        {
+            auto coresForOpt = detectedCores;
+            auto optMapping = scheduleEnergyAware(g, coresForOpt);
+            SimulationResult optRes = simulateExecution(g, optMapping, coresForOpt, true);
+
+            std::cout << "[RESULT] EnergyAware TIME_MS=" << optRes.timeMs
+                      << " ENERGY_J=" << optRes.energyJ << "\n";
+        }
+
     }
     return 0;
 }
+
 
 
 void yyerror(const char *s) {
